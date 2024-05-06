@@ -14,9 +14,7 @@ public class BookDaoImpl implements BookDao {
     @Override
     public String createEnumColor() {
         String sql = """
-                create type if not exists colors(
-                color_name varchar
-                )
+                create type colors as enum ('pink','black','white','blue','yellow')
                 """;
         try(Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
@@ -72,7 +70,7 @@ public class BookDaoImpl implements BookDao {
                 book.setId(resultSet.getLong("id"));
                 book.setTitle(resultSet.getString("title"));
                 book.setAuthor(resultSet.getString("author"));
-                book.setPublishedDate(resultSet.getDate("published_Date").toLocalDate());
+                book.setPublishedDate(resultSet.getDate("published_date").toLocalDate());
                 book.setGenre(Genre.valueOf(resultSet.getString("genre")));
                 books.add(book);
             }
@@ -84,16 +82,39 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public String updateBook(Long bookId, Book newBook) {
-        return null;
+        String sql = """
+                update books set title = ?, author = ?, published_date = ?, genre = ? where id = ?
+                """;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, newBook.getTitle());
+            preparedStatement.setString(2, newBook.getAuthor());
+            preparedStatement.setDate(3, Date.valueOf(newBook.getPublishedDate()));
+            preparedStatement.setString(4, newBook.getGenre().toString());
+            preparedStatement.setLong(5, bookId);
+            preparedStatement.executeUpdate();
+            return "successfully updated";
+        }catch (SQLException e){
+            return e.getMessage();
+        }
     }
 
     @Override
     public String deleteBook(Long id) {
-        return null;
+        String sql = """
+                delete from books where id = ?
+                """;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setLong(1,id);
+            preparedStatement.executeUpdate();
+            return "successfully deleted";
+        }catch (SQLException e){
+            return e.getMessage();
+        }
     }
 
     @Override
     public List<Book> getBooksGroupedByAuthor() {
+
         return null;
     }
 
